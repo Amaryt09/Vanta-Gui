@@ -1,6 +1,6 @@
--- Vanta Hub GUI Library v1.1
+-- Vanta Hub GUI Library v2.0
 -- Mobile & PC Compatible GUI Library for Roblox
--- Now with Toggle Key to Hide/Show!
+-- With Mode Selection Screen
 
 local VantaHub = {}
 VantaHub.__index = VantaHub
@@ -33,14 +33,290 @@ local config = {
     }
 }
 
+-- Show mode selection screen
+function VantaHub:ShowModeSelection(callback)
+    local selectionGui = Instance.new("ScreenGui")
+    selectionGui.Name = "VantaHubSelection"
+    selectionGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+    selectionGui.ResetOnSpawn = false
+    selectionGui.Parent = game:GetService("CoreGui")
+    
+    -- Dark overlay
+    local overlay = Instance.new("Frame")
+    overlay.Size = UDim2.new(1, 0, 1, 0)
+    overlay.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+    overlay.BackgroundTransparency = 0.3
+    overlay.BorderSizePixel = 0
+    overlay.Parent = selectionGui
+    
+    -- Selection container
+    local container = Instance.new("Frame")
+    container.Size = UDim2.new(0, 500, 0, 400)
+    container.Position = UDim2.new(0.5, 0, 0.5, 0)
+    container.AnchorPoint = Vector2.new(0.5, 0.5)
+    container.BackgroundColor3 = Color3.fromRGB(25, 25, 35)
+    container.BorderSizePixel = 0
+    container.Parent = selectionGui
+    
+    local containerCorner = Instance.new("UICorner")
+    containerCorner.CornerRadius = UDim.new(0, 12)
+    containerCorner.Parent = container
+    
+    -- Title
+    local title = Instance.new("TextLabel")
+    title.Size = UDim2.new(1, 0, 0, 80)
+    title.Position = UDim2.new(0, 0, 0, 0)
+    title.BackgroundTransparency = 1
+    title.Text = "VANTA HUB"
+    title.TextColor3 = Color3.fromRGB(138, 43, 226)
+    title.TextSize = 36
+    title.Font = Enum.Font.GothamBold
+    title.Parent = container
+    
+    -- Subtitle
+    local subtitle = Instance.new("TextLabel")
+    subtitle.Size = UDim2.new(1, 0, 0, 40)
+    subtitle.Position = UDim2.new(0, 0, 0, 70)
+    subtitle.BackgroundTransparency = 1
+    subtitle.Text = "Select Your Device Type"
+    subtitle.TextColor3 = Color3.fromRGB(180, 180, 180)
+    subtitle.TextSize = 18
+    subtitle.Font = Enum.Font.Gotham
+    subtitle.Parent = container
+    
+    -- PC Button
+    local pcButton = Instance.new("TextButton")
+    pcButton.Size = UDim2.new(0, 200, 0, 80)
+    pcButton.Position = UDim2.new(0.5, -210, 0.5, 0)
+    pcButton.AnchorPoint = Vector2.new(0.5, 0.5)
+    pcButton.BackgroundColor3 = Color3.fromRGB(35, 35, 45)
+    pcButton.Text = ""
+    pcButton.Parent = container
+    
+    local pcCorner = Instance.new("UICorner")
+    pcCorner.CornerRadius = UDim.new(0, 8)
+    pcCorner.Parent = pcButton
+    
+    local pcIcon = Instance.new("TextLabel")
+    pcIcon.Size = UDim2.new(1, 0, 0, 35)
+    pcIcon.Position = UDim2.new(0, 0, 0, 10)
+    pcIcon.BackgroundTransparency = 1
+    pcIcon.Text = "💻"
+    pcIcon.TextSize = 32
+    pcIcon.Parent = pcButton
+    
+    local pcLabel = Instance.new("TextLabel")
+    pcLabel.Size = UDim2.new(1, 0, 0, 25)
+    pcLabel.Position = UDim2.new(0, 0, 0, 50)
+    pcLabel.BackgroundTransparency = 1
+    pcLabel.Text = "PC / Desktop"
+    pcLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+    pcLabel.TextSize = 16
+    pcLabel.Font = Enum.Font.GothamBold
+    pcLabel.Parent = pcButton
+    
+    -- Mobile Button
+    local mobileButton = Instance.new("TextButton")
+    mobileButton.Size = UDim2.new(0, 200, 0, 80)
+    mobileButton.Position = UDim2.new(0.5, 10, 0.5, 0)
+    mobileButton.AnchorPoint = Vector2.new(0.5, 0.5)
+    mobileButton.BackgroundColor3 = Color3.fromRGB(35, 35, 45)
+    mobileButton.Text = ""
+    mobileButton.Parent = container
+    
+    local mobileCorner = Instance.new("UICorner")
+    mobileCorner.CornerRadius = UDim.new(0, 8)
+    mobileCorner.Parent = mobileButton
+    
+    local mobileIcon = Instance.new("TextLabel")
+    mobileIcon.Size = UDim2.new(1, 0, 0, 35)
+    mobileIcon.Position = UDim2.new(0, 0, 0, 10)
+    mobileIcon.BackgroundTransparency = 1
+    mobileIcon.Text = "📱"
+    mobileIcon.TextSize = 32
+    mobileIcon.Parent = mobileButton
+    
+    local mobileLabel = Instance.new("TextLabel")
+    mobileLabel.Size = UDim2.new(1, 0, 0, 25)
+    mobileLabel.Position = UDim2.new(0, 0, 0, 50)
+    mobileLabel.BackgroundTransparency = 1
+    mobileLabel.Text = "Mobile / Tablet"
+    mobileLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+    mobileLabel.TextSize = 16
+    mobileLabel.Font = Enum.Font.GothamBold
+    mobileLabel.Parent = mobileButton
+    
+    -- Info text
+    local info = Instance.new("TextLabel")
+    info.Size = UDim2.new(1, -40, 0, 60)
+    info.Position = UDim2.new(0, 20, 1, -80)
+    info.BackgroundTransparency = 1
+    info.Text = "Choose the mode that best fits your device.\nYou can change this later."
+    info.TextColor3 = Color3.fromRGB(150, 150, 150)
+    info.TextSize = 14
+    info.Font = Enum.Font.Gotham
+    info.TextWrapped = true
+    info.Parent = container
+    
+    -- Hover effects
+    pcButton.MouseEnter:Connect(function()
+        pcButton.BackgroundColor3 = Color3.fromRGB(138, 43, 226)
+    end)
+    
+    pcButton.MouseLeave:Connect(function()
+        pcButton.BackgroundColor3 = Color3.fromRGB(35, 35, 45)
+    end)
+    
+    mobileButton.MouseEnter:Connect(function()
+        mobileButton.BackgroundColor3 = Color3.fromRGB(138, 43, 226)
+    end)
+    
+    mobileButton.MouseLeave:Connect(function()
+        mobileButton.BackgroundColor3 = Color3.fromRGB(35, 35, 45)
+    end)
+    
+    -- Button clicks
+    pcButton.MouseButton1Click:Connect(function()
+        self:ShowLoadingScreen(selectionGui, function()
+            callback("pc")
+        end)
+    end)
+    
+    mobileButton.MouseButton1Click:Connect(function()
+        self:ShowLoadingScreen(selectionGui, function()
+            callback("mobile")
+        end)
+    end)
+end
+
+-- Show loading screen
+function VantaHub:ShowLoadingScreen(oldGui, callback)
+    -- Fade out selection
+    local tweenInfo = TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+    
+    for _, child in pairs(oldGui:GetChildren()) do
+        if child:IsA("GuiObject") then
+            TweenService:Create(child, tweenInfo, {BackgroundTransparency = 1}):Play()
+            for _, subChild in pairs(child:GetDescendants()) do
+                if subChild:IsA("GuiObject") or subChild:IsA("TextLabel") or subChild:IsA("TextButton") then
+                    if subChild.BackgroundTransparency then
+                        TweenService:Create(subChild, tweenInfo, {BackgroundTransparency = 1}):Play()
+                    end
+                    if subChild.TextTransparency then
+                        TweenService:Create(subChild, tweenInfo, {TextTransparency = 1}):Play()
+                    end
+                end
+            end
+        end
+    end
+    
+    wait(0.3)
+    
+    -- Create loading screen
+    local loadingFrame = Instance.new("Frame")
+    loadingFrame.Size = UDim2.new(1, 0, 1, 0)
+    loadingFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 25)
+    loadingFrame.BorderSizePixel = 0
+    loadingFrame.Parent = oldGui
+    
+    local loadingText = Instance.new("TextLabel")
+    loadingText.Size = UDim2.new(0, 300, 0, 50)
+    loadingText.Position = UDim2.new(0.5, 0, 0.5, -50)
+    loadingText.AnchorPoint = Vector2.new(0.5, 0.5)
+    loadingText.BackgroundTransparency = 1
+    loadingText.Text = "Loading Vanta Hub..."
+    loadingText.TextColor3 = Color3.fromRGB(138, 43, 226)
+    loadingText.TextSize = 24
+    loadingText.Font = Enum.Font.GothamBold
+    loadingText.Parent = loadingFrame
+    
+    -- Loading bar background
+    local barBg = Instance.new("Frame")
+    barBg.Size = UDim2.new(0, 300, 0, 8)
+    barBg.Position = UDim2.new(0.5, 0, 0.5, 20)
+    barBg.AnchorPoint = Vector2.new(0.5, 0.5)
+    barBg.BackgroundColor3 = Color3.fromRGB(35, 35, 45)
+    barBg.BorderSizePixel = 0
+    barBg.Parent = loadingFrame
+    
+    local barBgCorner = Instance.new("UICorner")
+    barBgCorner.CornerRadius = UDim.new(1, 0)
+    barBgCorner.Parent = barBg
+    
+    -- Loading bar fill
+    local barFill = Instance.new("Frame")
+    barFill.Size = UDim2.new(0, 0, 1, 0)
+    barFill.BackgroundColor3 = Color3.fromRGB(138, 43, 226)
+    barFill.BorderSizePixel = 0
+    barFill.Parent = barBg
+    
+    local barFillCorner = Instance.new("UICorner")
+    barFillCorner.CornerRadius = UDim.new(1, 0)
+    barFillCorner.Parent = barFill
+    
+    -- Percentage text
+    local percentText = Instance.new("TextLabel")
+    percentText.Size = UDim2.new(0, 100, 0, 30)
+    percentText.Position = UDim2.new(0.5, 0, 0.5, 50)
+    percentText.AnchorPoint = Vector2.new(0.5, 0.5)
+    percentText.BackgroundTransparency = 1
+    percentText.Text = "0%"
+    percentText.TextColor3 = Color3.fromRGB(180, 180, 180)
+    percentText.TextSize = 16
+    percentText.Font = Enum.Font.Gotham
+    percentText.Parent = loadingFrame
+    
+    -- Animate loading bar
+    local loadSteps = {
+        {time = 0.5, percent = 25, text = "Initializing..."},
+        {time = 0.3, percent = 50, text = "Loading components..."},
+        {time = 0.4, percent = 75, text = "Setting up interface..."},
+        {time = 0.3, percent = 100, text = "Ready!"}
+    }
+    
+    for _, step in ipairs(loadSteps) do
+        loadingText.Text = step.text
+        local tween = TweenService:Create(barFill, TweenInfo.new(step.time), {Size = UDim2.new(step.percent / 100, 0, 1, 0)})
+        tween:Play()
+        
+        -- Animate percentage
+        spawn(function()
+            local startPercent = tonumber(percentText.Text:sub(1, -2)) or 0
+            local steps = 20
+            local increment = (step.percent - startPercent) / steps
+            for i = 1, steps do
+                wait(step.time / steps)
+                percentText.Text = math.floor(startPercent + (increment * i)) .. "%"
+            end
+        end)
+        
+        wait(step.time)
+    end
+    
+    wait(0.5)
+    
+    -- Fade out loading screen
+    for _, child in pairs(loadingFrame:GetChildren()) do
+        if child:IsA("GuiObject") and child.TextTransparency then
+            TweenService:Create(child, tweenInfo, {TextTransparency = 1}):Play()
+        end
+        if child:IsA("GuiObject") and child.BackgroundTransparency then
+            TweenService:Create(child, tweenInfo, {BackgroundTransparency = 1}):Play()
+        end
+    end
+    
+    wait(0.3)
+    oldGui:Destroy()
+    callback()
+end
+
 -- Create new window
 function VantaHub:CreateWindow(options)
     local self = setmetatable({}, VantaHub)
     
     -- Options
     self.Title = options.Title or "Vanta Hub"
-    self.Mode = options.Mode or "pc" -- "mobile" or "pc"
-    self.ToggleKey = options.ToggleKey or Enum.KeyCode.RightControl -- Key to hide/show GUI
+    self.ToggleKey = options.ToggleKey or Enum.KeyCode.RightControl
     self.Theme = options.Theme or {
         Background = Color3.fromRGB(25, 25, 35),
         Secondary = Color3.fromRGB(35, 35, 45),
@@ -49,6 +325,22 @@ function VantaHub:CreateWindow(options)
         TextDark = Color3.fromRGB(180, 180, 180)
     }
     
+    -- Show mode selection if Mode not specified
+    if not options.Mode then
+        self:ShowModeSelection(function(selectedMode)
+            options.Mode = selectedMode
+            self:InitializeWindow(options)
+        end)
+        return self
+    else
+        self:InitializeWindow(options)
+        return self
+    end
+end
+
+-- Initialize the actual window
+function VantaHub:InitializeWindow(options)
+    self.Mode = options.Mode
     self.cfg = config[self.Mode]
     self.tabs = {}
     self.currentTab = nil
@@ -73,20 +365,6 @@ function VantaHub:CreateWindow(options)
     local corner = Instance.new("UICorner")
     corner.CornerRadius = UDim.new(0, 8)
     corner.Parent = self.MainFrame
-    
-    -- Add shadow effect
-    local shadow = Instance.new("ImageLabel")
-    shadow.Name = "Shadow"
-    shadow.BackgroundTransparency = 1
-    shadow.Position = UDim2.new(0, -15, 0, -15)
-    shadow.Size = UDim2.new(1, 30, 1, 30)
-    shadow.ZIndex = 0
-    shadow.Image = "rbxasset://textures/ui/Controls/DropShadow.png"
-    shadow.ImageColor3 = Color3.fromRGB(0, 0, 0)
-    shadow.ImageTransparency = 0.5
-    shadow.ScaleType = Enum.ScaleType.Slice
-    shadow.SliceCenter = Rect.new(12, 12, 12, 12)
-    shadow.Parent = self.MainFrame
     
     -- Title Bar
     local titleBar = Instance.new("Frame")
@@ -178,9 +456,7 @@ function VantaHub:CreateWindow(options)
     self:SetupToggleKey()
     
     -- Show notification
-    self:Notify("Press " .. self.ToggleKey.Name .. " to hide/show GUI")
-    
-    return self
+    self:Notify("Press " .. self.ToggleKey.Name .. " to hide/show GUI", 3)
 end
 
 -- Setup toggle key
@@ -218,6 +494,8 @@ end
 
 -- Notification system
 function VantaHub:Notify(text, duration)
+    if not self.ScreenGui then return end
+    
     duration = duration or 3
     
     local notif = Instance.new("Frame")
@@ -329,7 +607,7 @@ function VantaHub:CreateTab(name)
         self:SelectTab(tab)
     end
     
-    -- Tab methods
+    -- Tab methods (Button, Toggle, Slider, etc.)
     function tab:Button(options)
         local btn = Instance.new("TextButton")
         btn.Size = self.cfg.buttonSize
