@@ -1,8 +1,13 @@
--- Vanta Hub GUI Library v1.0
+-- Vanta Hub GUI Library v1.1
 -- Mobile & PC Compatible GUI Library for Roblox
+-- Now with Toggle Key to Hide/Show!
 
 local VantaHub = {}
 VantaHub.__index = VantaHub
+
+-- Services
+local UserInputService = game:GetService("UserInputService")
+local TweenService = game:GetService("TweenService")
 
 -- Configuration
 local config = {
@@ -35,6 +40,7 @@ function VantaHub:CreateWindow(options)
     -- Options
     self.Title = options.Title or "Vanta Hub"
     self.Mode = options.Mode or "pc" -- "mobile" or "pc"
+    self.ToggleKey = options.ToggleKey or Enum.KeyCode.RightControl -- Key to hide/show GUI
     self.Theme = options.Theme or {
         Background = Color3.fromRGB(25, 25, 35),
         Secondary = Color3.fromRGB(35, 35, 45),
@@ -46,6 +52,7 @@ function VantaHub:CreateWindow(options)
     self.cfg = config[self.Mode]
     self.tabs = {}
     self.currentTab = nil
+    self.isVisible = true
     
     -- Create ScreenGui
     self.ScreenGui = Instance.new("ScreenGui")
@@ -67,6 +74,20 @@ function VantaHub:CreateWindow(options)
     corner.CornerRadius = UDim.new(0, 8)
     corner.Parent = self.MainFrame
     
+    -- Add shadow effect
+    local shadow = Instance.new("ImageLabel")
+    shadow.Name = "Shadow"
+    shadow.BackgroundTransparency = 1
+    shadow.Position = UDim2.new(0, -15, 0, -15)
+    shadow.Size = UDim2.new(1, 30, 1, 30)
+    shadow.ZIndex = 0
+    shadow.Image = "rbxasset://textures/ui/Controls/DropShadow.png"
+    shadow.ImageColor3 = Color3.fromRGB(0, 0, 0)
+    shadow.ImageTransparency = 0.5
+    shadow.ScaleType = Enum.ScaleType.Slice
+    shadow.SliceCenter = Rect.new(12, 12, 12, 12)
+    shadow.Parent = self.MainFrame
+    
     -- Title Bar
     local titleBar = Instance.new("Frame")
     titleBar.Size = UDim2.new(1, 0, 0, self.Mode == "mobile" and 40 or 50)
@@ -79,7 +100,7 @@ function VantaHub:CreateWindow(options)
     titleCorner.Parent = titleBar
     
     local titleLabel = Instance.new("TextLabel")
-    titleLabel.Size = UDim2.new(1, -60, 1, 0)
+    titleLabel.Size = UDim2.new(1, -100, 1, 0)
     titleLabel.Position = UDim2.new(0, 10, 0, 0)
     titleLabel.BackgroundTransparency = 1
     titleLabel.Text = self.Title
@@ -88,6 +109,25 @@ function VantaHub:CreateWindow(options)
     titleLabel.Font = Enum.Font.GothamBold
     titleLabel.TextXAlignment = Enum.TextXAlignment.Left
     titleLabel.Parent = titleBar
+    
+    -- Minimize Button
+    local minimizeBtn = Instance.new("TextButton")
+    minimizeBtn.Size = UDim2.new(0, 40, 0, 40)
+    minimizeBtn.Position = UDim2.new(1, -90, 0, 5)
+    minimizeBtn.BackgroundColor3 = Color3.fromRGB(255, 193, 7)
+    minimizeBtn.Text = "_"
+    minimizeBtn.TextColor3 = Color3.fromRGB(0, 0, 0)
+    minimizeBtn.TextSize = self.cfg.fontSize + 2
+    minimizeBtn.Font = Enum.Font.GothamBold
+    minimizeBtn.Parent = titleBar
+    
+    local minimizeBtnCorner = Instance.new("UICorner")
+    minimizeBtnCorner.CornerRadius = UDim.new(0, 6)
+    minimizeBtnCorner.Parent = minimizeBtn
+    
+    minimizeBtn.MouseButton1Click:Connect(function()
+        self:ToggleVisibility()
+    end)
     
     -- Close Button
     local closeBtn = Instance.new("TextButton")
@@ -134,7 +174,76 @@ function VantaHub:CreateWindow(options)
     -- Make draggable
     self:MakeDraggable(self.MainFrame, titleBar)
     
+    -- Setup toggle key
+    self:SetupToggleKey()
+    
+    -- Show notification
+    self:Notify("Press " .. self.ToggleKey.Name .. " to hide/show GUI")
+    
     return self
+end
+
+-- Setup toggle key
+function VantaHub:SetupToggleKey()
+    UserInputService.InputBegan:Connect(function(input, gameProcessed)
+        if not gameProcessed and input.KeyCode == self.ToggleKey then
+            self:ToggleVisibility()
+        end
+    end)
+end
+
+-- Toggle visibility
+function VantaHub:ToggleVisibility()
+    self.isVisible = not self.isVisible
+    local tweenInfo = TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+    
+    if self.isVisible then
+        self.MainFrame.Visible = true
+        local tween = TweenService:Create(self.MainFrame, tweenInfo, {
+            Position = UDim2.new(0.5, 0, 0.5, 0)
+        })
+        tween:Play()
+    else
+        local tween = TweenService:Create(self.MainFrame, tweenInfo, {
+            Position = UDim2.new(0.5, 0, -0.5, 0)
+        })
+        tween:Play()
+        tween.Completed:Connect(function()
+            if not self.isVisible then
+                self.MainFrame.Visible = false
+            end
+        end)
+    end
+end
+
+-- Notification system
+function VantaHub:Notify(text, duration)
+    duration = duration or 3
+    
+    local notif = Instance.new("Frame")
+    notif.Size = UDim2.new(0, 300, 0, 60)
+    notif.Position = UDim2.new(1, -320, 1, -80)
+    notif.BackgroundColor3 = self.Theme.Secondary
+    notif.BorderSizePixel = 0
+    notif.Parent = self.ScreenGui
+    
+    local notifCorner = Instance.new("UICorner")
+    notifCorner.CornerRadius = UDim.new(0, 8)
+    notifCorner.Parent = notif
+    
+    local notifLabel = Instance.new("TextLabel")
+    notifLabel.Size = UDim2.new(1, -20, 1, -20)
+    notifLabel.Position = UDim2.new(0, 10, 0, 10)
+    notifLabel.BackgroundTransparency = 1
+    notifLabel.Text = text
+    notifLabel.TextColor3 = self.Theme.Text
+    notifLabel.TextSize = 14
+    notifLabel.Font = Enum.Font.Gotham
+    notifLabel.TextWrapped = true
+    notifLabel.Parent = notif
+    
+    task.wait(duration)
+    notif:Destroy()
 end
 
 -- Make frame draggable
@@ -161,7 +270,7 @@ function VantaHub:MakeDraggable(frame, dragHandle)
         end
     end)
     
-    game:GetService("UserInputService").InputChanged:Connect(function(input)
+    UserInputService.InputChanged:Connect(function(input)
         if input == dragInput and dragging then
             local delta = input.Position - dragStart
             frame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
@@ -369,13 +478,13 @@ function VantaHub:CreateTab(name)
             end
         end)
         
-        game:GetService("UserInputService").InputEnded:Connect(function(input)
+        UserInputService.InputEnded:Connect(function(input)
             if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
                 dragging = false
             end
         end)
         
-        game:GetService("UserInputService").InputChanged:Connect(function(input)
+        UserInputService.InputChanged:Connect(function(input)
             if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
                 local pos = math.clamp((input.Position.X - sliderBar.AbsolutePosition.X) / sliderBar.AbsoluteSize.X, 0, 1)
                 currentValue = math.floor(min + (max - min) * pos)
