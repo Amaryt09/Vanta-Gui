@@ -1,184 +1,201 @@
--- Vulkan GUI Library - Fixed & Improved
--- Smooth animations, rich dark design, draggable, tabs, buttons, toggles
-
+--// Vulkan UI Library v3
 local Vulkan = {}
+Vulkan.__index = Vulkan
+
+--// Services
+local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
-local UserInputService = game:GetService("UserInputService")
+local UIS = game:GetService("UserInputService")
+local HttpService = game:GetService("HttpService")
+local Lighting = game:GetService("Lighting")
 
-local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "VulkanGui"
-ScreenGui.ResetOnSpawn = false
-ScreenGui.Parent = game.CoreGui
+local Player = Players.LocalPlayer
 
-local function Tween(obj, props, time = 0.3, style = Enum.EasingStyle.Quad)
-    local tween = TweenService:Create(obj, TweenInfo.new(time, style, Enum.EasingDirection.Out), props)
-    tween:Play()
-    return tween
+--// File Protection
+local canSave = writefile and readfile and isfile
+
+--// Theme
+local Theme = {
+    Background = Color3.fromRGB(18,18,18),
+    Container = Color3.fromRGB(28,28,28),
+    Accent = Color3.fromRGB(255,85,85),
+    Text = Color3.fromRGB(235,235,235)
+}
+
+--// Config
+local Config = {}
+
+--// Blur
+local Blur = Instance.new("BlurEffect", Lighting)
+
+--// Tween Helper
+local function Tween(o,t,p)
+    TweenService:Create(o,t,p):Play()
 end
 
-function Vulkan:Window(options)
-    options = options or {}
-    local title = options.Title or "Vulkan"
-    local size = options.Size or UDim2.new(0, 550, 0, 400)
+--// Notifications
+local NotifyGui = Instance.new("ScreenGui", Player.PlayerGui)
+NotifyGui.Name = "VulkanNotify"
 
-    local Main = Instance.new("Frame")
-    Main.Size = UDim2.new(0, 0, 0, 0)
-    Main.Position = UDim2.new(0.5, 0, 0.5, 0)
-    Main.AnchorPoint = Vector2.new(0.5, 0.5)
-    Main.BackgroundColor3 = Color3.fromRGB(18, 18, 24)
-    Main.BorderSizePixel = 0
-    Main.Parent = ScreenGui
+function Vulkan:Notify(title, text, time)
+    local Frame = Instance.new("Frame", NotifyGui)
+    Frame.Size = UDim2.fromOffset(260,80)
+    Frame.Position = UDim2.fromScale(1,1)
+    Frame.AnchorPoint = Vector2.new(1,1)
+    Frame.BackgroundColor3 = Theme.Container
+    Instance.new("UICorner", Frame).CornerRadius = UDim.new(0,14)
 
-    local Corner = Instance.new("UICorner")
-    Corner.CornerRadius = UDim.new(0, 12)
-    Corner.Parent = Main
+    local Title = Instance.new("TextLabel", Frame)
+    Title.Text = title
+    Title.Font = Enum.Font.GothamBold
+    Title.TextSize = 14
+    Title.TextColor3 = Theme.Text
+    Title.BackgroundTransparency = 1
+    Title.Position = UDim2.fromOffset(12,8)
+    Title.Size = UDim2.new(1,-24,0,20)
 
-    local Stroke = Instance.new("UIStroke")
-    Stroke.Thickness = 2
-    Stroke.Color = Color3.fromRGB(40, 40, 60)
-    Stroke.Transparency = 0.6
-    Stroke.Parent = Main
+    local Body = Instance.new("TextLabel", Frame)
+    Body.Text = text
+    Body.Font = Enum.Font.Gotham
+    Body.TextSize = 13
+    Body.TextWrapped = true
+    Body.TextColor3 = Theme.Text
+    Body.BackgroundTransparency = 1
+    Body.Position = UDim2.fromOffset(12,30)
+    Body.Size = UDim2.new(1,-24,0,40)
 
-    local Gradient = Instance.new("UIGradient")
-    Gradient.Color = ColorSequence.new(Color3.fromRGB(25, 25, 35), Color3.fromRGB(10, 10, 18))
-    Gradient.Parent = Main
+    Tween(Frame, TweenInfo.new(0.4,Enum.EasingStyle.Quint),
+        {Position = UDim2.new(1,-20,1,-100)})
 
-    local TitleBar = Instance.new("Frame")
-    TitleBar.Size = UDim2.new(1, 0, 0, 45)
-    TitleBar.BackgroundColor3 = Color3.fromRGB(12, 12, 18)
-    TitleBar.Parent = Main
-
-    local TitleBarCorner = Instance.new("UICorner")
-    TitleBarCorner.CornerRadius = UDim.new(0, 12)
-    TitleBarCorner.Parent = TitleBar
-
-    local TitleLabel = Instance.new("TextLabel")
-    TitleLabel.Text = title
-    TitleLabel.Size = UDim2.new(1, -50, 1, 0)
-    TitleLabel.Position = UDim2.new(0, 15, 0, 0)
-    TitleLabel.BackgroundTransparency = 1
-    TitleLabel.TextColor3 = Color3.new(1, 1, 1)
-    TitleLabel.Font = Enum.Font.GothamBold
-    TitleLabel.TextSize = 18
-    TitleLabel.TextXAlignment = Enum.TextXAlignment.Left
-    TitleLabel.Parent = TitleBar
-
-    local CloseBtn = Instance.new("TextButton")
-    CloseBtn.Size = UDim2.new(0, 35, 0, 35)
-    CloseBtn.Position = UDim2.new(1, -40, 0, 5)
-    CloseBtn.BackgroundColor3 = Color3.fromRGB(200, 40, 40)
-    CloseBtn.Text = "X"
-    CloseBtn.TextColor3 = Color3.new(1, 1, 1)
-    CloseBtn.Font = Enum.Font.GothamBold
-    CloseBtn.Parent = TitleBar
-    Instance.new("UICorner", CloseBtn).CornerRadius = UDim.new(0, 8)
-
-    CloseBtn.MouseButton1Click:Connect(function()
-        Tween(Main, {Size = UDim2.new(0,0,0,0), BackgroundTransparency = 1}, 0.4, Enum.EasingStyle.Back)
-        task.delay(0.4, function() Main:Destroy() end)
+    task.delay(time or 3,function()
+        Tween(Frame,TweenInfo.new(0.4),{Transparency=1})
+        task.wait(0.4)
+        Frame:Destroy()
     end)
+end
 
-    -- Dragging
-    local dragging, dragStart, startPos
-    TitleBar.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 then
-            dragging = true
-            dragStart = input.Position
-            startPos = Main.Position
-        end
-    end)
-    TitleBar.InputChanged:Connect(function(input)
-        if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
-            local delta = input.Position - dragStart
-            Main.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
-        end
-    end)
-    UserInputService.InputEnded:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 then
-            dragging = false
-        end
-    end)
-
-    -- Open animation
-    Tween(Main, {Size = size}, 0.5, Enum.EasingStyle.Back)
-
-    local Content = Instance.new("Frame")
-    Content.Size = UDim2.new(1, 0, 1, -45)
-    Content.Position = UDim2.new(0, 0, 0, 45)
-    Content.BackgroundTransparency = 1
-    Content.Parent = Main
-
+--// Window
+function Vulkan:CreateWindow(cfg)
+    local Window = {}
     local Tabs = {}
+    local Scale = 1
+    local ConfigFile = cfg.ConfigName and ("Vulkan_"..cfg.ConfigName..".json")
 
-    function Tabs:Tab(name)
-        local TabBtn = Instance.new("TextButton")
-        TabBtn.Size = UDim2.new(0, 120, 0, 35)
-        TabBtn.BackgroundColor3 = Color3.fromRGB(25, 25, 35)
-        TabBtn.Text = name
-        TabBtn.TextColor3 = Color3.new(1,1,1)
-        TabBtn.Font = Enum.Font.GothamSemibold
-        TabBtn.Parent = TitleBar
-        -- Layout tabs horizontally later if needed
-
-        local TabContent = Instance.new("ScrollingFrame")
-        TabContent.Size = UDim2.new(1, -20, 1, -20)
-        TabContent.Position = UDim2.new(0, 10, 0, 10)
-        TabContent.BackgroundTransparency = 1
-        TabContent.ScrollBarThickness = 5
-        TabContent.Visible = false
-        TabContent.CanvasSize = UDim2.new(0,0,0,0)
-        TabContent.AutomaticCanvasSize = Enum.AutomaticSize.Y
-        TabContent.Parent = Content
-
-        local List = Instance.new("UIListLayout")
-        List.Padding = UDim.new(0, 10)
-        List.Parent = TabContent
-
-        local Padding = Instance.new("UIPadding")
-        Padding.PaddingTop = UDim.new(0, 10)
-        Padding.Parent = TabContent
-
-        local Elements = {}
-
-        TabBtn.MouseButton1Click:Connect(function()
-            for _, frame in pairs(Content:GetChildren()) do
-                if frame:IsA("ScrollingFrame") then frame.Visible = false end
-            end
-            TabContent.Visible = true
-            Tween(TabBtn, {BackgroundColor3 = Color3.fromRGB(70, 130, 255)}, 0.3)
-        end)
-
-        function Elements:Button(text, callback)
-            local Btn = Instance.new("TextButton")
-            Btn.Size = UDim2.new(1, 0, 0, 45)
-            Btn.BackgroundColor3 = Color3.fromRGB(30, 30, 45)
-            Btn.Text = text
-            Btn.TextColor3 = Color3.new(1,1,1)
-            Btn.Font = Enum.Font.GothamSemibold
-            Btn.Parent = TabContent
-            Instance.new("UICorner", Btn).CornerRadius = UDim.new(0, 8)
-
-            Btn.MouseEnter:Connect(function() Tween(Btn, {BackgroundColor3 = Color3.fromRGB(50, 50, 70)}) end)
-            Btn.MouseLeave:Connect(function() Tween(Btn, {BackgroundColor3 = Color3.fromRGB(30, 30, 45)}) end)
-            Btn.MouseButton1Click:Connect(callback or function() end)
-        end
-
-        function Elements:Toggle(text, default, callback)
-            -- Toggle implementation (same as before, smooth)
-            -- ... (can add if needed)
-        end
-
-        -- Show first tab by default
-        if #Content:GetChildren() == 1 then
-            TabContent.Visible = true
-            Tween(TabBtn, {BackgroundColor3 = Color3.fromRGB(70, 130, 255)})
-        end
-
-        return Elements
+    --// Load Config
+    if canSave and ConfigFile and isfile(ConfigFile) then
+        Config = HttpService:JSONDecode(readfile(ConfigFile))
     end
 
-    return Tabs
+    local GUI = Instance.new("ScreenGui", Player.PlayerGui)
+
+    local Main = Instance.new("Frame", GUI)
+    Main.Size = UDim2.fromScale(0.5,0.6)
+    Main.Position = UDim2.fromScale(0.5,0.5)
+    Main.AnchorPoint = Vector2.new(0.5,0.5)
+    Main.BackgroundColor3 = Theme.Background
+    Instance.new("UICorner", Main).CornerRadius = UDim.new(0,18)
+
+    Tween(Blur,TweenInfo.new(0.4),{Size=15})
+
+    local UIScale = Instance.new("UIScale", Main)
+    UIScale.Scale = 1
+
+    --// Save
+    local function Save()
+        if canSave and ConfigFile then
+            writefile(ConfigFile,HttpService:JSONEncode(Config))
+        end
+    end
+
+    --// Tabs
+    function Window:CreateTab(name)
+        local Tab = {}
+        local Elements = {}
+
+        local Page = Instance.new("ScrollingFrame", Main)
+        Page.Size = UDim2.fromScale(1,1)
+        Page.ScrollBarImageTransparency = 1
+        Page.Visible = false
+
+        local Layout = Instance.new("UIListLayout", Page)
+        Layout.Padding = UDim.new(0,8)
+
+        Layout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+            Page.CanvasSize = UDim2.new(0,0,0,Layout.AbsoluteContentSize.Y+10)
+        end)
+
+        --// Search Bar
+        function Tab:CreateSearchBar()
+            local Box = Instance.new("TextBox", Page)
+            Box.PlaceholderText = "Search..."
+            Box.Size = UDim2.new(1,-10,0,36)
+            Box.BackgroundColor3 = Theme.Container
+            Instance.new("UICorner", Box).CornerRadius = UDim.new(0,12)
+
+            Box:GetPropertyChangedSignal("Text"):Connect(function()
+                for _,el in pairs(Elements) do
+                    el.Visible = el.Name:lower():find(Box.Text:lower()) ~= nil
+                end
+            end)
+        end
+
+        --// Slider
+        function Tab:CreateSlider(cfg)
+            local Holder = Instance.new("Frame", Page)
+            Holder.Name = cfg.Name
+            Holder.Size = UDim2.new(1,-10,0,50)
+            Holder.BackgroundColor3 = Theme.Container
+            Instance.new("UICorner", Holder).CornerRadius = UDim.new(0,12)
+
+            table.insert(Elements,Holder)
+
+            local val = Config[cfg.Flag] or cfg.Default
+            Config[cfg.Flag] = val
+
+            local Bar = Instance.new("Frame", Holder)
+            Bar.Position = UDim2.fromOffset(10,30)
+            Bar.Size = UDim2.new(1,-20,0,6)
+            Bar.BackgroundColor3 = Theme.Background
+
+            local Fill = Instance.new("Frame", Bar)
+            Fill.Size = UDim2.fromScale((val-cfg.Min)/(cfg.Max-cfg.Min),1)
+            Fill.BackgroundColor3 = Theme.Accent
+
+            Bar.InputBegan:Connect(function(i)
+                if i.UserInputType == Enum.UserInputType.MouseButton1 then
+                    UIS.InputChanged:Connect(function(inp)
+                        local pct = math.clamp((inp.Position.X-Bar.AbsolutePosition.X)/Bar.AbsoluteSize.X,0,1)
+                        local new = math.floor(cfg.Min+(cfg.Max-cfg.Min)*pct)
+                        Fill.Size = UDim2.fromScale(pct,1)
+                        Config[cfg.Flag]=new
+                        Save()
+                        cfg.Callback(new)
+                    end)
+                end
+            end)
+        end
+
+        --// UI Scale Control
+        function Tab:CreateUIScale()
+            self:CreateSlider({
+                Name="UI Scale",
+                Min=70,
+                Max=120,
+                Default=100,
+                Flag="UIScale",
+                Callback=function(v)
+                    UIScale.Scale = v/100
+                end
+            })
+        end
+
+        Tabs[#Tabs+1]=Page
+        if #Tabs==1 then Page.Visible=true end
+
+        return Tab
+    end
+
+    return Window
 end
 
--- CRITICAL: This line was missing or broken before
 return Vulkan
