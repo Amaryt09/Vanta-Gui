@@ -1,744 +1,205 @@
--- Vanta Redux V2 (Optimized & Animated)
--- Author: AI Generated
--- License: MIT
-
 local UserInputService = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
-local RunService = game:GetService("RunService")
-local Players = game:GetService("Players")
-local CoreGui = game:GetService("CoreGui")
 
-local Vanta = {}
+local Vulkan = {}
+Vulkan.__index = Vulkan
 
---// Configuration
-Vanta.Settings = {
-	Name = "Vanta Redux",
-	Keybind = Enum.KeyCode.RightControl,
-	Theme = {
-		Background = Color3.fromRGB(18, 18, 18),
-		Sidebar = Color3.fromRGB(25, 25, 25),
-		Element = Color3.fromRGB(32, 32, 32),
-		Text = Color3.fromRGB(240, 240, 240),
-		TextDark = Color3.fromRGB(170, 170, 170),
-		Accent = Color3.fromRGB(255, 60, 60), -- Dynamic Red
-		Outline = Color3.fromRGB(50, 50, 50),
-		Glow = Color3.fromRGB(0, 0, 0)
+local function createTween(instance, properties, duration, style, direction)
+	style = style or Enum.EasingStyle.Quad
+	direction = direction or Enum.EasingDirection.Out
+	return TweenService:Create(instance, TweenInfo.new(duration, style, direction), properties)
+end
+
+local function roundCorners(frame, radius)
+	local uicorner = Instance.new("UICorner")
+	uicorner.CornerRadius = UDim.new(0, radius)
+	uicorner.Parent = frame
+	return uicorner
+end
+
+function Vulkan.new(name)
+	local self = setmetatable({}, Vulkan)
+
+	-- Main ScreenGui
+	self.ScreenGui = Instance.new("ScreenGui")
+	self.ScreenGui.Name = name or "VulkanGUI"
+	self.ScreenGui.ResetOnSpawn = false
+	self.ScreenGui.DisplayOrder = 9999
+	self.ScreenGui.Parent = game:GetService("CoreGui")
+
+	-- Main Frame
+	self.MainFrame = Instance.new("Frame")
+	self.MainFrame.Size = UDim2.new(0, 400, 0, 300)
+	self.MainFrame.Position = UDim2.new(0.5, -200, 0.5, -150)
+	self.MainFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 35)
+	self.MainFrame.BorderSizePixel = 0
+	self.MainFrame.Parent = self.ScreenGui
+	roundCorners(self.MainFrame, 12)
+
+	-- Shadow (UIStroke + UIGradient for rich design)
+	local shadow = Instance.new("UIStroke")
+	shadow.Thickness = 3
+	shadow.Color = Color3.fromRGB(70, 70, 80)
+	shadow.Transparency = 0.6
+	shadow.Parent = self.MainFrame
+
+	local gradient = Instance.new("UIGradient")
+	gradient.Color = ColorSequence.new{
+		ColorSequenceKeypoint.new(0, Color3.fromRGB(45, 45, 50)),
+		ColorSequenceKeypoint.new(1, Color3.fromRGB(25, 25, 30))
 	}
-}
+	gradient.Rotation = 90
+	gradient.Parent = self.MainFrame
 
---// Utility
-local function GetParent()
-	local success, result = pcall(function() return gethui() end)
-	if success and result then return result end
-	if syn and syn.protect_gui then
-		local gui = Instance.new("ScreenGui")
-		gui.Name = "VantaProtected"
-		syn.protect_gui(gui)
-		gui.Parent = CoreGui
-		return gui
-	elseif CoreGui:FindFirstChild("RobloxGui") then
-		return CoreGui
-	end
-	return Players.LocalPlayer:WaitForChild("PlayerGui")
+	-- Title Bar
+	self.TitleBar = Instance.new("Frame")
+	self.TitleBar.Size = UDim2.new(1, 0, 0, 36)
+	self.TitleBar.BackgroundColor3 = Color3.fromRGB(50, 50, 60)
+	self.TitleBar.BorderSizePixel = 0
+	self.TitleBar.Parent = self.MainFrame
+	roundCorners(self.TitleBar, 12)
+
+	self.TitleLabel = Instance.new("TextLabel")
+	self.TitleLabel.Size = UDim2.new(1, -72, 1, 0)
+	self.TitleLabel.Position = UDim2.new(0, 12, 0, 0)
+	self.TitleLabel.BackgroundTransparency = 1
+	self.TitleLabel.Text = name or "Vulkan"
+	self.TitleLabel.Font = Enum.Font.GothamBold
+	self.TitleLabel.TextSize = 20
+	self.TitleLabel.TextColor3 = Color3.fromRGB(220, 220, 230)
+	self.TitleLabel.TextXAlignment = Enum.TextXAlignment.Left
+	self.TitleLabel.Parent = self.TitleBar
+
+	-- Close Button
+	self.CloseButton = Instance.new("TextButton")
+	self.CloseButton.Size = UDim2.new(0, 36, 0, 36)
+	self.CloseButton.Position = UDim2.new(1, -36, 0, 0)
+	self.CloseButton.BackgroundColor3 = Color3.fromRGB(60, 60, 70)
+	self.CloseButton.BorderSizePixel = 0
+	self.CloseButton.Text = "✕"
+	self.CloseButton.Font = Enum.Font.GothamBold
+	self.CloseButton.TextSize = 24
+	self.CloseButton.TextColor3 = Color3.fromRGB(200, 80, 80)
+	self.CloseButton.Parent = self.TitleBar
+	roundCorners(self.CloseButton, 12)
+
+	self.CloseButton.MouseEnter:Connect(function()
+		createTween(self.CloseButton, {BackgroundColor3 = Color3.fromRGB(200, 80, 80)}, 0.2):Play()
+		createTween(self.CloseButton, {TextColor3 = Color3.fromRGB(255, 255, 255)}, 0.2):Play()
+	end)
+	self.CloseButton.MouseLeave:Connect(function()
+		createTween(self.CloseButton, {BackgroundColor3 = Color3.fromRGB(60, 60, 70)}, 0.2):Play()
+		createTween(self.CloseButton, {TextColor3 = Color3.fromRGB(200, 80, 80)}, 0.2):Play()
+	end)
+	self.CloseButton.MouseButton1Click:Connect(function()
+		createTween(self.MainFrame, {BackgroundTransparency = 1, Size = UDim2.new(0, 0, 0, 0)}, 0.3):Play()
+		wait(0.3)
+		self.ScreenGui:Destroy()
+	end)
+
+	-- Container for tabs and content
+	self.ContentFrame = Instance.new("Frame")
+	self.ContentFrame.Size = UDim2.new(1, -24, 1, -48)
+	self.ContentFrame.Position = UDim2.new(0, 12, 0, 42)
+	self.ContentFrame.BackgroundTransparency = 1
+	self.ContentFrame.Parent = self.MainFrame
+
+	-- Tabs container
+	self.TabsFrame = Instance.new("Frame")
+	self.TabsFrame.Size = UDim2.new(1, 0, 0, 36)
+	self.TabsFrame.BackgroundTransparency = 1
+	self.TabsFrame.Parent = self.ContentFrame
+
+	self.Tabs = {}
+	self.TabButtons = {}
+	self.CurrentTab = nil
+
+	return self
 end
 
-local function Tween(obj, props, time, style, dir)
-	time = time or 0.25
-	style = style or Enum.EasingStyle.Quart
-	dir = dir or Enum.EasingDirection.Out
-	local info = TweenInfo.new(time, style, dir)
-	local tween = TweenService:Create(obj, info, props)
-	tween:Play()
-	return tween
-end
+function Vulkan:createTab(name)
+	local tab = {}
+	tab.Name = name
+	tab.Content = Instance.new("Frame")
+	tab.Content.Size = UDim2.new(1, 0, 1, -36)
+	tab.Content.Position = UDim2.new(0, 0, 0, 36)
+	tab.Content.BackgroundTransparency = 1
+	tab.Content.Visible = false
+	tab.Content.Parent = self.ContentFrame
 
-local function MakeDraggable(topbar, widget)
-	local dragging, dragInput, dragStart, startPos
+	-- Tab Button
+	local button = Instance.new("TextButton")
+	button.Size = UDim2.new(0, 100, 1, 0)
+	button.BackgroundColor3 = Color3.fromRGB(50, 50, 60)
+	button.BorderSizePixel = 0
+	button.Text = name
+	button.Font = Enum.Font.GothamSemibold
+	button.TextSize = 16
+	button.TextColor3 = Color3.fromRGB(180, 180, 190)
+	button.Parent = self.TabsFrame
+	roundCorners(button, 8)
 
-	topbar.InputBegan:Connect(function(input)
-		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-			dragging = true
-			dragStart = input.Position
-			startPos = widget.Position
-			
-			input.Changed:Connect(function()
-				if input.UserInputState == Enum.UserInputState.End then
-					dragging = false
-				end
-			end)
+	button.MouseEnter:Connect(function()
+		if self.CurrentTab ~= tab then
+			createTween(button, {BackgroundColor3 = Color3.fromRGB(70, 70, 80)}, 0.2):Play()
+		end
+	end)
+	button.MouseLeave:Connect(function()
+		if self.CurrentTab ~= tab then
+			createTween(button, {BackgroundColor3 = Color3.fromRGB(50, 50, 60)}, 0.2):Play()
 		end
 	end)
 
-	topbar.InputChanged:Connect(function(input)
-		if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
-			dragInput = input
-		end
+	button.MouseButton1Click:Connect(function()
+		self:switchTab(tab.Name)
 	end)
 
-	UserInputService.InputChanged:Connect(function(input)
-		if input == dragInput and dragging then
-			local delta = input.Position - dragStart
-			local targetPos = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
-			Tween(widget, {Position = targetPos}, 0.05, Enum.EasingStyle.Linear)
-		end
-	end)
+	self.Tabs[name] = tab
+	self.TabButtons[name] = button
+
+	-- Auto switch to first tab created
+	if not self.CurrentTab then
+		self:switchTab(name)
+	end
+
+	return tab.Content
 end
 
-local function Ripple(button)
-	spawn(function()
-		local ripple = Instance.new("Frame")
-		ripple.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-		ripple.BackgroundTransparency = 0.85
-		ripple.BorderSizePixel = 0
-		ripple.AnchorPoint = Vector2.new(0.5, 0.5)
-		ripple.Position = UDim2.new(0.5, 0, 0.5, 0)
-		ripple.Size = UDim2.new(0, 0, 0, 0)
-		ripple.Parent = button
-		
-		local corner = Instance.new("UICorner")
-		corner.CornerRadius = UDim.new(1, 0)
-		corner.Parent = ripple
-		
-		Tween(ripple, {Size = UDim2.new(0, 200, 0, 200), BackgroundTransparency = 1}, 0.5)
-		wait(0.5)
-		ripple:Destroy()
-	end)
+function Vulkan:switchTab(name)
+	if self.CurrentTab and self.CurrentTab.Name == name then return end
+
+	if self.CurrentTab then
+		self.CurrentTab.Content.Visible = false
+		local oldButton = self.TabButtons[self.CurrentTab.Name]
+		createTween(oldButton, {BackgroundColor3 = Color3.fromRGB(50, 50, 60)}, 0.3):Play()
+		createTween(oldButton, {TextColor3 = Color3.fromRGB(180, 180, 190)}, 0.3):Play()
+	end
+
+	local newTab = self.Tabs[name]
+	if newTab then
+		newTab.Content.Visible = true
+		local newButton = self.TabButtons[name]
+		createTween(newButton, {BackgroundColor3 = Color3.fromRGB(90, 90, 110)}, 0.3):Play()
+		createTween(newButton, {TextColor3 = Color3.fromRGB(255, 255, 255)}, 0.3):Play()
+		self.CurrentTab = newTab
+	end
 end
 
---// Main Library
-function Vanta:Window(options)
-	options = options or {}
-	local titleText = options.Name or "Vanta Redux"
-	local currentKeybind = options.Keybind or Vanta.Settings.Keybind
+function Vulkan:createButton(parent, text, callback)
+	local button = Instance.new("TextButton")
+	button.Size = UDim2.new(1, 0, 0, 36)
+	button.BackgroundColor3 = Color3.fromRGB(70, 70, 90)
+	button.BorderSizePixel = 0
+	button.Text = text
+	button.Font = Enum.Font.GothamSemibold
+	button.TextSize = 18
+	button.TextColor3 = Color3.fromRGB(230, 230, 240)
+	button.Parent = parent
+	roundCorners(button, 10)
 
-	local ScreenGui = Instance.new("ScreenGui")
-	ScreenGui.Name = "Vanta_" .. math.random(1000, 9999)
-	ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-	ScreenGui.ResetOnSpawn = false
-	ScreenGui.Parent = GetParent()
-
-	--// NOTIFICATIONS
-	local NotifyContainer = Instance.new("Frame")
-	NotifyContainer.Parent = ScreenGui
-	NotifyContainer.BackgroundTransparency = 1
-	NotifyContainer.Position = UDim2.new(1, -320, 1, -50)
-	NotifyContainer.AnchorPoint = Vector2.new(1, 1)
-	NotifyContainer.Size = UDim2.new(0, 300, 0.8, 0)
-	
-	local NotifyList = Instance.new("UIListLayout")
-	NotifyList.Parent = NotifyContainer
-	NotifyList.SortOrder = Enum.SortOrder.LayoutOrder
-	NotifyList.VerticalAlignment = Enum.VerticalAlignment.Bottom
-	NotifyList.Padding = UDim.new(0, 8)
-
-	--// MAIN FRAME
-	local Main = Instance.new("Frame")
-	Main.Name = "MainFrame"
-	Main.Parent = ScreenGui
-	Main.BackgroundColor3 = Vanta.Settings.Theme.Background
-	Main.Position = UDim2.new(0.5, -300, 0.5, -200)
-	Main.Size = UDim2.new(0, 600, 0, 400)
-	Main.ClipsDescendants = false -- Allow shadow
-	
-	-- Shadow/Glow
-	local MainShadow = Instance.new("ImageLabel")
-	MainShadow.Parent = Main
-	MainShadow.BackgroundTransparency = 1
-	MainShadow.Position = UDim2.new(0, -15, 0, -15)
-	MainShadow.Size = UDim2.new(1, 30, 1, 30)
-	MainShadow.ZIndex = 0
-	MainShadow.Image = "rbxassetid://5554236805"
-	MainShadow.ImageColor3 = Vanta.Settings.Theme.Glow
-	MainShadow.ScaleType = Enum.ScaleType.Slice
-	MainShadow.SliceCenter = Rect.new(23, 23, 277, 277)
-
-	local MainCorner = Instance.new("UICorner")
-	MainCorner.CornerRadius = UDim.new(0, 8)
-	MainCorner.Parent = Main
-
-	local MainStroke = Instance.new("UIStroke")
-	MainStroke.Color = Vanta.Settings.Theme.Outline
-	MainStroke.Thickness = 1.2
-	MainStroke.Parent = Main
-
-	-- Sidebar
-	local Sidebar = Instance.new("Frame")
-	Sidebar.Parent = Main
-	Sidebar.BackgroundColor3 = Vanta.Settings.Theme.Sidebar
-	Sidebar.Size = UDim2.new(0, 160, 1, 0)
-	Sidebar.ZIndex = 2
-	
-	local SideCorner = Instance.new("UICorner")
-	SideCorner.CornerRadius = UDim.new(0, 8)
-	SideCorner.Parent = Sidebar
-	
-	local SideFix = Instance.new("Frame")
-	SideFix.Parent = Sidebar
-	SideFix.BackgroundColor3 = Vanta.Settings.Theme.Sidebar
-	SideFix.BorderSizePixel = 0
-	SideFix.Size = UDim2.new(0, 10, 1, 0)
-	SideFix.Position = UDim2.new(1, -10, 0, 0)
-	SideFix.ZIndex = 2
-
-	-- Drag Area (Title)
-	local DragArea = Instance.new("Frame")
-	DragArea.Parent = Sidebar
-	DragArea.BackgroundTransparency = 1
-	DragArea.Size = UDim2.new(1, 0, 0, 50)
-	
-	local Title = Instance.new("TextLabel")
-	Title.Parent = DragArea
-	Title.BackgroundTransparency = 1
-	Title.Position = UDim2.new(0, 15, 0, 0)
-	Title.Size = UDim2.new(1, -20, 1, 0)
-	Title.Font = Enum.Font.GothamBold
-	Title.Text = titleText
-	Title.TextColor3 = Vanta.Settings.Theme.Accent
-	Title.TextSize = 20
-	Title.TextXAlignment = Enum.TextXAlignment.Left
-
-	MakeDraggable(DragArea, Main)
-	MakeDraggable(Main, Main) -- Allow dragging body too
-
-	-- Tab Container
-	local TabContainer = Instance.new("ScrollingFrame")
-	TabContainer.Parent = Sidebar
-	TabContainer.BackgroundTransparency = 1
-	TabContainer.Position = UDim2.new(0, 0, 0, 60)
-	TabContainer.Size = UDim2.new(1, 0, 1, -70)
-	TabContainer.CanvasSize = UDim2.new(0,0,0,0)
-	TabContainer.ScrollBarThickness = 0
-	TabContainer.ZIndex = 3
-	
-	local TabLayout = Instance.new("UIListLayout")
-	TabLayout.Parent = TabContainer
-	TabLayout.SortOrder = Enum.SortOrder.LayoutOrder
-	TabLayout.Padding = UDim.new(0, 5)
-
-	-- Pages
-	local Pages = Instance.new("Frame")
-	Pages.Parent = Main
-	Pages.BackgroundTransparency = 1
-	Pages.Position = UDim2.new(0, 170, 0, 10)
-	Pages.Size = UDim2.new(1, -180, 1, -20)
-	Pages.ClipsDescendants = true
-
-	-- Mobile Toggle
-	if UserInputService.TouchEnabled then
-		local ToggleBtn = Instance.new("TextButton")
-		ToggleBtn.Parent = ScreenGui
-		ToggleBtn.BackgroundColor3 = Vanta.Settings.Theme.Sidebar
-		ToggleBtn.Position = UDim2.new(0, 20, 0.5, -25)
-		ToggleBtn.Size = UDim2.new(0, 50, 0, 50)
-		ToggleBtn.Text = "V"
-		ToggleBtn.TextColor3 = Vanta.Settings.Theme.Accent
-		ToggleBtn.Font = Enum.Font.GothamBold
-		ToggleBtn.TextSize = 24
-		
-		local TCorner = Instance.new("UICorner")
-		TCorner.CornerRadius = UDim.new(1, 0)
-		TCorner.Parent = ToggleBtn
-		
-		local TStroke = Instance.new("UIStroke")
-		TStroke.Color = Vanta.Settings.Theme.Outline
-		TStroke.Thickness = 2
-		TStroke.Parent = ToggleBtn
-		
-		MakeDraggable(ToggleBtn, ToggleBtn) -- Mobile button is draggable
-		
-		ToggleBtn.MouseButton1Click:Connect(function()
-			Main.Visible = not Main.Visible
-		end)
-	end
-
-	-- Keybind Logic
-	UserInputService.InputBegan:Connect(function(input, gpe)
-		if not gpe and input.KeyCode == currentKeybind then
-			Main.Visible = not Main.Visible
-		end
+	button.MouseEnter:Connect(function()
+		createTween(button, {BackgroundColor3 = Color3.fromRGB(100, 100, 130)}, 0.2):Play()
 	end)
-
-	-- Notification Logic
-	local function SendNotification(title, text, duration)
-		local NFrame = Instance.new("Frame")
-		NFrame.Parent = NotifyContainer
-		NFrame.BackgroundColor3 = Vanta.Settings.Theme.Sidebar
-		NFrame.Size = UDim2.new(1, 0, 0, 0) -- Start small
-		NFrame.ClipsDescendants = true
-		
-		local NCorner = Instance.new("UICorner")
-		NCorner.CornerRadius = UDim.new(0, 6)
-		NCorner.Parent = NFrame
-		
-		local NStroke = Instance.new("UIStroke")
-		NStroke.Color = Vanta.Settings.Theme.Outline
-		NStroke.Parent = NFrame
-		
-		local NContent = Instance.new("Frame")
-		NContent.Parent = NFrame
-		NContent.BackgroundTransparency = 1
-		NContent.Size = UDim2.new(1, 0, 0, 70)
-		
-		local NTitle = Instance.new("TextLabel")
-		NTitle.Parent = NContent
-		NTitle.BackgroundTransparency = 1
-		NTitle.Position = UDim2.new(0, 12, 0, 8)
-		NTitle.Size = UDim2.new(1, -24, 0, 20)
-		NTitle.Font = Enum.Font.GothamBold
-		NTitle.Text = title
-		NTitle.TextColor3 = Vanta.Settings.Theme.Accent
-		NTitle.TextSize = 14
-		NTitle.TextXAlignment = Enum.TextXAlignment.Left
-		
-		local NText = Instance.new("TextLabel")
-		NText.Parent = NContent
-		NText.BackgroundTransparency = 1
-		NText.Position = UDim2.new(0, 12, 0, 30)
-		NText.Size = UDim2.new(1, -24, 0, 35)
-		NText.Font = Enum.Font.Gotham
-		NText.Text = text
-		NText.TextColor3 = Vanta.Settings.Theme.Text
-		NText.TextSize = 12
-		NText.TextXAlignment = Enum.TextXAlignment.Left
-		NText.TextWrapped = true
-		
-		Tween(NFrame, {Size = UDim2.new(1, 0, 0, 75)}, 0.4, Enum.EasingStyle.Back)
-		
-		task.delay(duration or 3, function()
-			Tween(NFrame, {Size = UDim2.new(1, 0, 0, 0), BackgroundTransparency = 1}, 0.3)
-			wait(0.3)
-			NFrame:Destroy()
-		end)
-	end
-
-	-- Window Functions
-	local WindowHandler = {}
-
-	function WindowHandler:Notification(title, text, time)
-		SendNotification(title, text, time)
-	end
-
-	local FirstTab = true
-
-	function WindowHandler:Tab(name)
-		-- Tab Button
-		local TabBtn = Instance.new("TextButton")
-		TabBtn.Parent = TabContainer
-		TabBtn.BackgroundTransparency = 1
-		TabBtn.Size = UDim2.new(1, 0, 0, 36)
-		TabBtn.Font = Enum.Font.GothamBold
-		TabBtn.Text = name
-		TabBtn.TextColor3 = Vanta.Settings.Theme.TextDark
-		TabBtn.TextSize = 14
-		
-		local TabInd = Instance.new("Frame")
-		TabInd.Parent = TabBtn
-		TabInd.BackgroundColor3 = Vanta.Settings.Theme.Accent
-		TabInd.Position = UDim2.new(0, 0, 0.2, 0)
-		TabInd.Size = UDim2.new(0, 3, 0.6, 0)
-		TabInd.BackgroundTransparency = 1 -- Hide initially
-
-		-- Page
-		local Page = Instance.new("ScrollingFrame")
-		Page.Parent = Pages
-		Page.BackgroundTransparency = 1
-		Page.Size = UDim2.new(1, 0, 1, 0)
-		Page.CanvasSize = UDim2.new(0, 0, 0, 0)
-		Page.ScrollBarThickness = 2
-		Page.ScrollBarImageColor3 = Vanta.Settings.Theme.Accent
-		Page.Visible = false
-		
-		local PageLayout = Instance.new("UIListLayout")
-		PageLayout.Parent = Page
-		PageLayout.SortOrder = Enum.SortOrder.LayoutOrder
-		PageLayout.Padding = UDim.new(0, 6)
-		
-		PageLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
-			Page.CanvasSize = UDim2.new(0, 0, 0, PageLayout.AbsoluteContentSize.Y + 20)
-		end)
-
-		-- Switch
-		local function OpenTab()
-			for _, t in pairs(TabContainer:GetChildren()) do
-				if t:IsA("TextButton") then
-					Tween(t, {TextColor3 = Vanta.Settings.Theme.TextDark})
-					Tween(t.Frame, {BackgroundTransparency = 1})
-				end
-			end
-			for _, p in pairs(Pages:GetChildren()) do
-				p.Visible = false
-			end
-			
-			Tween(TabBtn, {TextColor3 = Vanta.Settings.Theme.Text})
-			Tween(TabInd, {BackgroundTransparency = 0})
-			Page.Visible = true
-		end
-		
-		TabBtn.MouseButton1Click:Connect(OpenTab)
-		
-		if FirstTab then
-			FirstTab = false
-			OpenTab()
-		end
-		
-		-- Elements
-		local TabHandler = {}
-		
-		function TabHandler:Label(text)
-			local Lbl = Instance.new("TextLabel")
-			Lbl.Parent = Page
-			Lbl.BackgroundTransparency = 1
-			Lbl.Size = UDim2.new(1, 0, 0, 25)
-			Lbl.Font = Enum.Font.GothamBold
-			Lbl.Text = text
-			Lbl.TextColor3 = Vanta.Settings.Theme.Text
-			Lbl.TextSize = 14
-			Lbl.TextXAlignment = Enum.TextXAlignment.Left
-			Instance.new("UIPadding", Lbl).PaddingLeft = UDim.new(0, 5)
-		end
-		
-		function TabHandler:Button(text, callback)
-			callback = callback or function() end
-			local Btn = Instance.new("TextButton")
-			Btn.Parent = Page
-			Btn.BackgroundColor3 = Vanta.Settings.Theme.Element
-			Btn.Size = UDim2.new(1, -5, 0, 38)
-			Btn.AutoButtonColor = false
-			Btn.Font = Enum.Font.Gotham
-			Btn.Text = text
-			Btn.TextColor3 = Vanta.Settings.Theme.Text
-			Btn.TextSize = 14
-			
-			local Corner = Instance.new("UICorner")
-			Corner.CornerRadius = UDim.new(0, 6)
-			Corner.Parent = Btn
-			
-			local Stroke = Instance.new("UIStroke")
-			Stroke.Color = Vanta.Settings.Theme.Outline
-			Stroke.Parent = Btn
-			
-			Btn.MouseEnter:Connect(function() Tween(Stroke, {Color = Vanta.Settings.Theme.Accent}) end)
-			Btn.MouseLeave:Connect(function() Tween(Stroke, {Color = Vanta.Settings.Theme.Outline}) end)
-			
-			Btn.MouseButton1Click:Connect(function()
-				Ripple(Btn)
-				callback()
-			end)
-		end
-		
-		function TabHandler:Toggle(text, default, callback)
-			callback = callback or function() end
-			local toggled = default or false
-			
-			local TogBtn = Instance.new("TextButton")
-			TogBtn.Parent = Page
-			TogBtn.BackgroundColor3 = Vanta.Settings.Theme.Element
-			TogBtn.Size = UDim2.new(1, -5, 0, 38)
-			TogBtn.AutoButtonColor = false
-			TogBtn.Text = ""
-			
-			local Corner = Instance.new("UICorner")
-			Corner.CornerRadius = UDim.new(0, 6)
-			Corner.Parent = TogBtn
-			
-			local Label = Instance.new("TextLabel")
-			Label.Parent = TogBtn
-			Label.BackgroundTransparency = 1
-			Label.Position = UDim2.new(0, 10, 0, 0)
-			Label.Size = UDim2.new(1, -60, 1, 0)
-			Label.Font = Enum.Font.Gotham
-			Label.Text = text
-			Label.TextColor3 = Vanta.Settings.Theme.Text
-			Label.TextSize = 14
-			Label.TextXAlignment = Enum.TextXAlignment.Left
-			
-			local ToggleBg = Instance.new("Frame")
-			ToggleBg.Parent = TogBtn
-			ToggleBg.BackgroundColor3 = toggled and Vanta.Settings.Theme.Accent or Color3.fromRGB(45, 45, 45)
-			ToggleBg.Position = UDim2.new(1, -50, 0.5, -10)
-			ToggleBg.Size = UDim2.new(0, 40, 0, 20)
-			
-			local TBgCorner = Instance.new("UICorner")
-			TBgCorner.CornerRadius = UDim.new(1, 0)
-			TBgCorner.Parent = ToggleBg
-			
-			local Dot = Instance.new("Frame")
-			Dot.Parent = ToggleBg
-			Dot.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-			Dot.Position = toggled and UDim2.new(1, -18, 0.5, -8) or UDim2.new(0, 2, 0.5, -8)
-			Dot.Size = UDim2.new(0, 16, 0, 16)
-			
-			local DCorner = Instance.new("UICorner")
-			DCorner.CornerRadius = UDim.new(1, 0)
-			DCorner.Parent = Dot
-			
-			TogBtn.MouseButton1Click:Connect(function()
-				toggled = not toggled
-				Ripple(TogBtn)
-				if toggled then
-					Tween(ToggleBg, {BackgroundColor3 = Vanta.Settings.Theme.Accent})
-					Tween(Dot, {Position = UDim2.new(1, -18, 0.5, -8)}, 0.2, Enum.EasingStyle.Back)
-				else
-					Tween(ToggleBg, {BackgroundColor3 = Color3.fromRGB(45, 45, 45)})
-					Tween(Dot, {Position = UDim2.new(0, 2, 0.5, -8)}, 0.2, Enum.EasingStyle.Back)
-				end
-				callback(toggled)
-			end)
-		end
-		
-		function TabHandler:Slider(text, min, max, default, callback)
-			callback = callback or function() end
-			local value = default or min
-			local dragging = false
-			
-			local SFrame = Instance.new("Frame")
-			SFrame.Parent = Page
-			SFrame.BackgroundColor3 = Vanta.Settings.Theme.Element
-			SFrame.Size = UDim2.new(1, -5, 0, 50)
-			
-			local Corner = Instance.new("UICorner")
-			Corner.CornerRadius = UDim.new(0, 6)
-			Corner.Parent = SFrame
-			
-			local Label = Instance.new("TextLabel")
-			Label.Parent = SFrame
-			Label.BackgroundTransparency = 1
-			Label.Position = UDim2.new(0, 10, 0, 5)
-			Label.Size = UDim2.new(1, -20, 0, 20)
-			Label.Font = Enum.Font.Gotham
-			Label.Text = text
-			Label.TextColor3 = Vanta.Settings.Theme.Text
-			Label.TextSize = 14
-			Label.TextXAlignment = Enum.TextXAlignment.Left
-			
-			local ValLabel = Instance.new("TextLabel")
-			ValLabel.Parent = SFrame
-			ValLabel.BackgroundTransparency = 1
-			ValLabel.Position = UDim2.new(0, 10, 0, 5)
-			ValLabel.Size = UDim2.new(1, -20, 0, 20)
-			ValLabel.Font = Enum.Font.Gotham
-			ValLabel.Text = tostring(value)
-			ValLabel.TextColor3 = Vanta.Settings.Theme.TextDark
-			ValLabel.TextSize = 14
-			ValLabel.TextXAlignment = Enum.TextXAlignment.Right
-			
-			local SlideBar = Instance.new("TextButton")
-			SlideBar.Parent = SFrame
-			SlideBar.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
-			SlideBar.Position = UDim2.new(0, 10, 0, 32)
-			SlideBar.Size = UDim2.new(1, -20, 0, 6)
-			SlideBar.AutoButtonColor = false
-			SlideBar.Text = ""
-			
-			local BCorner = Instance.new("UICorner")
-			BCorner.CornerRadius = UDim.new(1, 0)
-			BCorner.Parent = SlideBar
-			
-			local Fill = Instance.new("Frame")
-			Fill.Parent = SlideBar
-			Fill.BackgroundColor3 = Vanta.Settings.Theme.Accent
-			Fill.Size = UDim2.new((value - min) / (max - min), 0, 1, 0)
-			
-			local FCorner = Instance.new("UICorner")
-			FCorner.CornerRadius = UDim.new(1, 0)
-			FCorner.Parent = Fill
-			
-			local function Update(input)
-				local pos = math.clamp((input.Position.X - SlideBar.AbsolutePosition.X) / SlideBar.AbsoluteSize.X, 0, 1)
-				Tween(Fill, {Size = UDim2.new(pos, 0, 1, 0)}, 0.05)
-				local val = math.floor(min + ((max - min) * pos))
-				ValLabel.Text = tostring(val)
-				callback(val)
-			end
-			
-			SlideBar.InputBegan:Connect(function(input)
-				if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-					dragging = true
-					Update(input)
-				end
-			end)
-			
-			UserInputService.InputEnded:Connect(function(input)
-				if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-					dragging = false
-				end
-			end)
-			
-			UserInputService.InputChanged:Connect(function(input)
-				if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
-					Update(input)
-				end
-			end)
-		end
-		
-		function TabHandler:Dropdown(text, options, callback)
-			callback = callback or function() end
-			local dropped = false
-			
-			local DropFrame = Instance.new("Frame")
-			DropFrame.Parent = Page
-			DropFrame.BackgroundColor3 = Vanta.Settings.Theme.Element
-			DropFrame.Size = UDim2.new(1, -5, 0, 38)
-			DropFrame.ClipsDescendants = true
-			
-			local Corner = Instance.new("UICorner")
-			Corner.CornerRadius = UDim.new(0, 6)
-			Corner.Parent = DropFrame
-			
-			local Header = Instance.new("TextButton")
-			Header.Parent = DropFrame
-			Header.BackgroundTransparency = 1
-			Header.Size = UDim2.new(1, 0, 0, 38)
-			Header.Font = Enum.Font.Gotham
-			Header.Text = text
-			Header.TextColor3 = Vanta.Settings.Theme.Text
-			Header.TextSize = 14
-			
-			local Icon = Instance.new("ImageLabel")
-			Icon.Parent = Header
-			Icon.BackgroundTransparency = 1
-			Icon.Position = UDim2.new(1, -25, 0.5, -8)
-			Icon.Size = UDim2.new(0, 16, 0, 16)
-			Icon.Image = "rbxassetid://6031090990"
-			Icon.ImageColor3 = Vanta.Settings.Theme.Text
-			Icon.Rotation = 0
-			
-			local List = Instance.new("UIListLayout")
-			List.Parent = DropFrame
-			List.SortOrder = Enum.SortOrder.LayoutOrder
-			List.Padding = UDim.new(0, 2)
-			
-			-- Spacer
-			local Spacer = Instance.new("Frame")
-			Spacer.Parent = DropFrame
-			Spacer.BackgroundTransparency = 1
-			Spacer.Size = UDim2.new(1, 0, 0, 38)
-			Spacer.LayoutOrder = -1
-			
-			local function Refresh()
-				for _, v in pairs(DropFrame:GetChildren()) do
-					if v:IsA("TextButton") and v ~= Header then v:Destroy() end
-				end
-				for _, opt in pairs(options) do
-					local OptBtn = Instance.new("TextButton")
-					OptBtn.Parent = DropFrame
-					OptBtn.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-					OptBtn.Size = UDim2.new(1, -10, 0, 30)
-					OptBtn.Font = Enum.Font.Gotham
-					OptBtn.Text = opt
-					OptBtn.TextColor3 = Vanta.Settings.Theme.TextDark
-					OptBtn.TextSize = 13
-					
-					local OCorner = Instance.new("UICorner")
-					OCorner.CornerRadius = UDim.new(0, 4)
-					OCorner.Parent = OptBtn
-					
-					OptBtn.MouseButton1Click:Connect(function()
-						dropped = false
-						Header.Text = text .. ": " .. opt
-						Tween(DropFrame, {Size = UDim2.new(1, -5, 0, 38)}, 0.2)
-						Tween(Icon, {Rotation = 0}, 0.2)
-						callback(opt)
-					end)
-				end
-			end
-			
-			Refresh()
-			
-			Header.MouseButton1Click:Connect(function()
-				dropped = not dropped
-				if dropped then
-					Tween(DropFrame, {Size = UDim2.new(1, -5, 0, 40 + (#options * 32) + 5)}, 0.3, Enum.EasingStyle.Quart)
-					Tween(Icon, {Rotation = 180}, 0.3)
-				else
-					Tween(DropFrame, {Size = UDim2.new(1, -5, 0, 38)}, 0.3, Enum.EasingStyle.Quart)
-					Tween(Icon, {Rotation = 0}, 0.3)
-				end
-			end)
-		end
-		
-		function TabHandler:ColorPicker(text, default, callback)
-			callback = callback or function() end
-			local color = default or Color3.fromRGB(255, 255, 255)
-			local picking = false
-			local dropped = false
-			
-			local CPFrame = Instance.new("Frame")
-			CPFrame.Parent = Page
-			CPFrame.BackgroundColor3 = Vanta.Settings.Theme.Element
-			CPFrame.Size = UDim2.new(1, -5, 0, 38)
-			CPFrame.ClipsDescendants = true
-			
-			local Corner = Instance.new("UICorner")
-			Corner.CornerRadius = UDim.new(0, 6)
-			Corner.Parent = CPFrame
-			
-			local Header = Instance.new("TextButton")
-			Header.Parent = CPFrame
-			Header.BackgroundTransparency = 1
-			Header.Size = UDim2.new(1, 0, 0, 38)
-			Header.Font = Enum.Font.Gotham
-			Header.Text = text
-			Header.TextColor3 = Vanta.Settings.Theme.Text
-			Header.TextSize = 14
-			
-			local Preview = Instance.new("Frame")
-			Preview.Parent = Header
-			Preview.BackgroundColor3 = color
-			Preview.Position = UDim2.new(1, -35, 0.5, -10)
-			Preview.Size = UDim2.new(0, 20, 0, 20)
-			
-			local PCorner = Instance.new("UICorner")
-			PCorner.CornerRadius = UDim.new(0, 4)
-			PCorner.Parent = Preview
-			
-			-- Spacer
-			local Spacer = Instance.new("Frame")
-			Spacer.Parent = CPFrame
-			Spacer.BackgroundTransparency = 1
-			Spacer.Size = UDim2.new(1, 0, 0, 38)
-			
-			-- Color Matrix (Simplified for V2)
-			local RGBInput = Instance.new("TextBox")
-			RGBInput.Parent = CPFrame
-			RGBInput.BackgroundColor3 = Color3.fromRGB(40,40,40)
-			RGBInput.Position = UDim2.new(0, 10, 0, 45)
-			RGBInput.Size = UDim2.new(1, -20, 0, 30)
-			RGBInput.Font = Enum.Font.Gotham
-			RGBInput.PlaceholderText = "255, 255, 255"
-			RGBInput.Text = string.format("%d, %d, %d", color.R*255, color.G*255, color.B*255)
-			RGBInput.TextColor3 = Vanta.Settings.Theme.Text
-			RGBInput.TextSize = 13
-			
-			local RCorner = Instance.new("UICorner")
-			RCorner.CornerRadius = UDim.new(0, 4)
-			RCorner.Parent = RGBInput
-			
-			RGBInput.FocusLost:Connect(function()
-				local r, g, b = RGBInput.Text:match("(%d+),%s*(%d+),%s*(%d+)")
-				if r and g and b then
-					color = Color3.fromRGB(tonumber(r), tonumber(g), tonumber(b))
-					Preview.BackgroundColor3 = color
-					callback(color)
-				end
-			end)
-			
-			Header.MouseButton1Click:Connect(function()
-				dropped = not dropped
-				if dropped then
-					Tween(CPFrame, {Size = UDim2.new(1, -5, 0, 85)}, 0.3)
-				else
-					Tween(CPFrame, {Size = UDim2.new(1, -5, 0, 38)}, 0.3)
-				end
-			end)
-		end
-
-		return TabHandler
-	end
-	
-	return WindowHandler
-end
-
-return Vanta
-
-
+	button.MouseLeave:Connect(function()
+		createTween(button, {BackgroundColor3 = Color3.fromRGB(70, 70, 90)}, 0.2):Play()
+	end)
